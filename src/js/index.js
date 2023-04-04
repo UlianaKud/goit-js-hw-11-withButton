@@ -26,6 +26,11 @@ const onSearchFormSubmit = async event => {
 
   const searchQuery = event.currentTarget.elements['searchQuery'].value;
   pixabayApi.q = searchQuery;
+  if (!searchQuery?.trim()) {
+    galleryList.innerHTML = '';
+    Notiflix.Notify.failure('Oops, request is empty');
+    return;
+  }
 
   try {
     const { data } = await pixabayApi.fetchPhotos();
