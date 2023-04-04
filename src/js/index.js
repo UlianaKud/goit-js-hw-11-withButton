@@ -7,22 +7,18 @@ import SimpleLightbox from 'simplelightbox';
 
 const searchFormEl = document.querySelector('.search-form');
 const galleryList = document.querySelector('.gallery');
-const loadMoreBtnEl = document.querySelector('.load-more');
 
 const pixabayApi = new PixabayAPI();
 let gallery;
 let isLoading = false;
 
-// document.addEventListener('scroll', e => {
-//   const { height } = galleryList.getBoundingClientRect();
-//   const { height: slideHeight } = document
-//       .querySelector('.gallery')
-//       .firstElementChild.getBoundingClientRect();
+document.addEventListener('scroll', () => {
+  const { height } = galleryList.getBoundingClientRect();
 
-//   if (height - window.pageYOffset < 1000 && !isLoading) {
-//     onLoadMoreBtnClick();
-//   }
-// });
+  if (height - window.pageYOffset < 1000 && !isLoading) {
+    onLoadMore();
+  }
+});
 
 const onSearchFormSubmit = async event => {
   event.preventDefault();
@@ -35,7 +31,6 @@ const onSearchFormSubmit = async event => {
     const { data } = await pixabayApi.fetchPhotos();
     if (!data.hits?.length) {
       galleryList.innerHTML = '';
-      loadMoreBtnEl.classList.add('is-hidden');
       Notiflix.Notify.failure(
         'Sorry, there are no images matching your search query. Please try again.'
       );
@@ -46,22 +41,22 @@ const onSearchFormSubmit = async event => {
     gallery = new SimpleLightbox('.gallery a');
 
     Notiflix.Notify.success(`"Hooray! We found ${data.totalHits} images.`);
-    loadMoreBtnEl.classList.remove('is-hidden');
   } catch (err) {
     console.log(err);
   }
 };
 
-const onLoadMoreBtnClick = async () => {
+const onLoadMore = async () => {
   pixabayApi.page += 1;
 
   try {
+    isLoading = true;
     const { data } = await pixabayApi.fetchPhotos();
     if (pixabayApi.page * pixabayApi.per_page >= data.totalHits) {
-      loadMoreBtnEl.classList.add('is-hidden');
       return;
     }
     galleryList.insertAdjacentHTML('beforeend', renderImagesList(data.hits));
+    isLoading = false;
     gallery.refresh();
     const { height } = document
       .querySelector('.gallery')
@@ -77,5 +72,3 @@ const onLoadMoreBtnClick = async () => {
 };
 
 searchFormEl.addEventListener('submit', onSearchFormSubmit);
-loadMoreBtnEl.addEventListener('click', onLoadMoreBtnClick);
-
