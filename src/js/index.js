@@ -7,18 +7,19 @@ import SimpleLightbox from 'simplelightbox';
 
 const searchFormEl = document.querySelector('.search-form');
 const galleryList = document.querySelector('.gallery');
+const loadMoreBtnEl = document.querySelector('.load-more');
 
 const pixabayApi = new PixabayAPI();
 let gallery;
-let isLoading = false;
+// let isLoading = false;
 
-document.addEventListener('scroll', () => {
-  const { height } = galleryList.getBoundingClientRect();
+// document.addEventListener('scroll', () => {
+//   const { height } = galleryList.getBoundingClientRect();
 
-  if (height - window.pageYOffset < 1000 && !isLoading) {
-    onLoadMore();
-  }
-});
+//   if (height - window.pageYOffset < 1000 && !isLoading) {
+//     onLoadMore();
+//   }
+// });
 
 const onSearchFormSubmit = async event => {
   event.preventDefault();
@@ -28,6 +29,7 @@ const onSearchFormSubmit = async event => {
   pixabayApi.q = searchQuery;
   if (!searchQuery?.trim()) {
     galleryList.innerHTML = '';
+    loadMoreBtnEl.classList.add('is-hidden');
     Notiflix.Notify.failure('Oops, request is empty');
     return;
   }
@@ -46,22 +48,22 @@ const onSearchFormSubmit = async event => {
     gallery = new SimpleLightbox('.gallery a');
 
     Notiflix.Notify.success(`"Hooray! We found ${data.totalHits} images.`);
+    loadMoreBtnEl.classList.remove('is-hidden');
   } catch (err) {
     console.log(err);
   }
 };
 
-const onLoadMore = async () => {
+const onLoadMoreBtnClick = async () => {
   pixabayApi.page += 1;
 
   try {
-    isLoading = true;
     const { data } = await pixabayApi.fetchPhotos();
     if (pixabayApi.page * pixabayApi.per_page >= data.totalHits) {
+      loadMoreBtnEl.classList.add('is-hidden');
       return;
     }
     galleryList.insertAdjacentHTML('beforeend', renderImagesList(data.hits));
-    isLoading = false;
     gallery.refresh();
     const { height } = document
       .querySelector('.gallery')
@@ -76,4 +78,31 @@ const onLoadMore = async () => {
   }
 };
 
+
+// const onLoadMore = async () => {
+//   pixabayApi.page += 1;
+
+//   try {
+//     isLoading = true;
+//     const { data } = await pixabayApi.fetchPhotos();
+//     if (pixabayApi.page * pixabayApi.per_page >= data.totalHits) {
+//       return;
+//     }
+//     galleryList.insertAdjacentHTML('beforeend', renderImagesList(data.hits));
+//     isLoading = false;
+//     gallery.refresh();
+//     const { height } = document
+//       .querySelector('.gallery')
+//       .firstElementChild.getBoundingClientRect();
+//     window.scrollBy({
+//       top: height * 2,
+//       behavior: 'smooth',
+//     });
+//   } catch (err) {
+//     isLoading = false;
+//     console.log(err);
+//   }
+// };
+
 searchFormEl.addEventListener('submit', onSearchFormSubmit);
+loadMoreBtnEl.addEventListener('click', onLoadMoreBtnClick);
