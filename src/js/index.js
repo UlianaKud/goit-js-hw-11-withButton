@@ -11,15 +11,6 @@ const loadMoreBtnEl = document.querySelector('.load-more');
 
 const pixabayApi = new PixabayAPI();
 let gallery;
-// let isLoading = false;
-
-// document.addEventListener('scroll', () => {
-//   const { height } = galleryList.getBoundingClientRect();
-
-//   if (height - window.pageYOffset < 1000 && !isLoading) {
-//     onLoadMore();
-//   }
-// });
 
 const onSearchFormSubmit = async event => {
   event.preventDefault();
@@ -77,32 +68,6 @@ const onLoadMoreBtnClick = async () => {
     console.log(err);
   }
 };
-
-
-// const onLoadMore = async () => {
-//   pixabayApi.page += 1;
-
-//   try {
-//     isLoading = true;
-//     const { data } = await pixabayApi.fetchPhotos();
-//     if (pixabayApi.page * pixabayApi.per_page >= data.totalHits) {
-//       return;
-//     }
-//     galleryList.insertAdjacentHTML('beforeend', renderImagesList(data.hits));
-//     isLoading = false;
-//     gallery.refresh();
-//     const { height } = document
-//       .querySelector('.gallery')
-//       .firstElementChild.getBoundingClientRect();
-//     window.scrollBy({
-//       top: height * 2,
-//       behavior: 'smooth',
-//     });
-//   } catch (err) {
-//     isLoading = false;
-//     console.log(err);
-//   }
-// };
 
 searchFormEl.addEventListener('submit', onSearchFormSubmit);
 loadMoreBtnEl.addEventListener('click', onLoadMoreBtnClick);
