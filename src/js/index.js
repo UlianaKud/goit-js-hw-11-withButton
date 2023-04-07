@@ -8,6 +8,15 @@ import SimpleLightbox from 'simplelightbox';
 const searchFormEl = document.querySelector('.search-form');
 const galleryList = document.querySelector('.gallery');
 const loadMoreBtnEl = document.querySelector('.load-more');
+const spinnerContainer = document.querySelector('.spinner');
+
+const showSpinner = () => {
+  spinnerContainer.classList.remove('is-spinner-hidden');
+};
+
+const hideSpinner = () => {
+  spinnerContainer.classList.add('is-spinner-hidden');
+};
 
 const pixabayApi = new PixabayAPI();
 let gallery;
@@ -26,21 +35,31 @@ const onSearchFormSubmit = async event => {
   }
 
   try {
+    showSpinner();
+    galleryList.innerHTML = '';
     const { data } = await pixabayApi.fetchPhotos();
     if (!data.hits?.length) {
+      hideSpinner();
       galleryList.innerHTML = '';
       Notiflix.Notify.failure(
         'Sorry, there are no images matching your search query. Please try again.'
       );
       return;
     }
+    pixabayApi.totalHits = data?.totalHits;
+    hideSpinner();
+    if (data?.hits?.length < 40) {
+      loadMoreBtnEl.classList.add('is-hidden');
+    } else {
+      loadMoreBtnEl.classList.remove('is-hidden');
+    }
 
     galleryList.innerHTML = renderImagesList(data.hits);
     gallery = new SimpleLightbox('.gallery a');
 
     Notiflix.Notify.success(`"Hooray! We found ${data.totalHits} images.`);
-    loadMoreBtnEl.classList.remove('is-hidden');
   } catch (err) {
+    hideSpinner();
     console.log(err);
   }
 };
@@ -49,10 +68,15 @@ const onLoadMoreBtnClick = async () => {
   pixabayApi.page += 1;
 
   try {
+    loadMoreBtnEl.classList.add('is-hidden');
+    showSpinner();
     const { data } = await pixabayApi.fetchPhotos();
-    if (pixabayApi.page * pixabayApi.per_page >= data.totalHits) {
+    hideSpinner();
+    console.log(pixabayApi.page * pixabayApi.per_page, pixabayApi.totalHits);
+    if (pixabayApi.page * pixabayApi.per_page >= pixabayApi.totalHits) {
       loadMoreBtnEl.classList.add('is-hidden');
-      return;
+    } else {
+      loadMoreBtnEl.classList.remove('is-hidden');
     }
     galleryList.insertAdjacentHTML('beforeend', renderImagesList(data.hits));
     gallery.refresh();
@@ -64,6 +88,7 @@ const onLoadMoreBtnClick = async () => {
       behavior: 'smooth',
     });
   } catch (err) {
+    hideSpinner();
     isLoading = false;
     console.log(err);
   }
